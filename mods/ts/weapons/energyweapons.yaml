@@ -67,7 +67,6 @@ MechRailgun:
 SonicZap:
 	ReloadDelay: 180
 	Range: 6c0
-	Charges: yes
 	Report: sonic4.aud
 	Projectile: AreaBeam
 		Speed: 0c128
@@ -171,9 +170,8 @@ Proton:
 		ValidImpactTypes: Water
 
 ObeliskLaserFire:
-	ReloadDelay: 120
+	ReloadDelay: 1
 	Range: 10c512
-	Charges: true
 	Report: obelray1.aud
 	Projectile: LaserZap
 		Width: 170

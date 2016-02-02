@@ -165,7 +165,6 @@ ServerTraits:
 	PlayerPinger
 	MasterServerPinger
 	LobbySettingsNotification
-	ColorValidator
 
 LobbyDefaults:
 	AllowCheats: false
@@ -177,6 +176,7 @@ LobbyDefaults:
 	TechLevel: Unrestricted
 
 ChromeMetrics:
+	./mods/common/metrics.yaml
 	./mods/ra/metrics.yaml
 
 Fonts:
@@ -242,3 +242,5 @@ GameSpeeds:
 		Name: Fastest
 		Timestep: 20
 		OrderLatency: 6
+
+ColorValidator:

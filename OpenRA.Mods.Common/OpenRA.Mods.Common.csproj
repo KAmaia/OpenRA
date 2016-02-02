@@ -212,7 +212,6 @@
     <Compile Include="Scripting\Properties\AircraftProperties.cs" />
     <Compile Include="Scripting\ScriptUpgradesCache.cs" />
     <Compile Include="Scripting\Properties\CaptureProperties.cs" />
-    <Compile Include="ServerTraits\ColorValidator.cs" />
     <Compile Include="ServerTraits\LobbyCommands.cs" />
     <Compile Include="ServerTraits\LobbySettingsNotification.cs" />
     <Compile Include="ServerTraits\MasterServerPinger.cs" />
@@ -289,6 +288,7 @@
     <Compile Include="Traits\Buildings\Exit.cs" />
     <Compile Include="Traits\Buildings\FootprintUtils.cs" />
     <Compile Include="Traits\Buildings\FreeActor.cs" />
+    <Compile Include="Traits\Buildings\Gate.cs" />
     <Compile Include="Traits\Buildings\LineBuild.cs" />
     <Compile Include="Traits\Buildings\LineBuildNode.cs" />
     <Compile Include="Traits\Buildings\PrimaryBuilding.cs" />
@@ -547,7 +547,6 @@
     <Compile Include="UtilityCommands\GetMapHashCommand.cs" />
     <Compile Include="UtilityCommands\Glob.cs" />
     <Compile Include="UtilityCommands\ImportLegacyMapCommand.cs" />
-    <Compile Include="UtilityCommands\LegacyMapImporter.cs" />
     <Compile Include="UtilityCommands\RemapShpCommand.cs" />
     <Compile Include="UtilityCommands\ReplayMetadataCommand.cs" />
     <Compile Include="UtilityCommands\UpgradeMapCommand.cs" />
@@ -730,6 +729,9 @@
     <Compile Include="Orders\GuardOrderGenerator.cs" />
     <Compile Include="UtilityCommands\CheckExplicitInterfacesCommand.cs" />
     <Compile Include="FileFormats\LZOCompression.cs" />
+    <Compile Include="Util.cs" />
+    <Compile Include="Traits\Render\WithGateSpriteBody.cs" />
+    <Compile Include="ColorValidator.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

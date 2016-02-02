@@ -203,7 +203,7 @@ namespace OpenRA.Traits
 		bool HasFogVisibility();
 	}
 
-	public interface IRadarColorModifier { Color RadarColorOverride(Actor self); }
+	public interface IRadarColorModifier { Color RadarColorOverride(Actor self, Color color); }
 
 	public interface IOccupySpaceInfo : ITraitInfoInterface
 	{
@@ -282,6 +282,13 @@ namespace OpenRA.Traits
 		CPos NearestMoveableCell(CPos target);
 		bool IsMoving { get; set; }
 		bool CanEnterTargetNow(Actor self, Target target);
+	}
+
+	[RequireExplicitImplementation]
+	public interface ITemporaryBlocker
+	{
+		bool CanRemoveBlockage(Actor self, Actor blocking);
+		bool IsBlocking(Actor self, CPos cell);
 	}
 
 	public interface INotifyBlockingMove { void OnNotifyBlockingMove(Actor self, Actor blocking); }

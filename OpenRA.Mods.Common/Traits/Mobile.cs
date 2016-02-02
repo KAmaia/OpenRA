@@ -240,6 +240,11 @@ namespace OpenRA.Mods.Common.Traits
 				IsMovingInMyDirection(self, otherActor))
 				return false;
 
+			// If there is a temporary blocker in our path, but we can remove it, we are not blocked.
+			var temporaryBlocker = otherActor.TraitOrDefault<ITemporaryBlocker>();
+			if (temporaryBlocker != null && temporaryBlocker.CanRemoveBlockage(otherActor, self))
+				return false;
+
 			// If we cannot crush the other actor in our way, we are blocked.
 			if (self == null || Crushes == null || Crushes.Count == 0)
 				return true;
@@ -582,7 +587,7 @@ namespace OpenRA.Mods.Common.Traits
 		public void EnteringCell(Actor self)
 		{
 			// Only make actor crush if it is on the ground
-			if (self.CenterPosition.Z != 0)
+			if (!self.IsAtGroundLevel())
 				return;
 
 			var crushables = self.World.ActorMap.GetActorsAt(ToCell).Where(a => a != self)
@@ -682,7 +687,7 @@ namespace OpenRA.Mods.Common.Traits
 					var notifyBlocking = new CallFunc(() => self.NotifyBlocker(cellInfo.Cell));
 					var waitFor = new WaitFor(() => CanEnterCell(cellInfo.Cell));
 					var move = new Move(self, cellInfo.Cell);
-					self.QueueActivity(Util.SequenceActivities(notifyBlocking, waitFor, move));
+					self.QueueActivity(ActivityUtils.SequenceActivities(notifyBlocking, waitFor, move));
 
 					Log.Write("debug", "OnNudge (notify next blocking actor, wait and move) #{0} from {1} to {2}",
 						self.ActorID, self.Location, cellInfo.Cell);
@@ -751,7 +756,7 @@ namespace OpenRA.Mods.Common.Traits
 			var pos = self.CenterPosition;
 
 			if (subCell == SubCell.Any)
-				subCell = self.World.ActorMap.FreeSubCell(cell, subCell);
+				subCell = Info.SharesCell ? self.World.ActorMap.FreeSubCell(cell, subCell) : SubCell.FullCell;
 
 			// TODO: solve/reduce cell is full problem
 			if (subCell == SubCell.Invalid)
@@ -797,7 +802,7 @@ namespace OpenRA.Mods.Common.Traits
 
 			var delta = toPos - fromPos;
 			var facing = delta.HorizontalLengthSquared != 0 ? delta.Yaw.Facing : Facing;
-			return Util.SequenceActivities(new Turn(self, facing), new Drag(self, fromPos, toPos, length));
+			return ActivityUtils.SequenceActivities(new Turn(self, facing), new Drag(self, fromPos, toPos, length));
 		}
 
 		public void ModifyDeathActorInit(Actor self, TypeDictionary init)

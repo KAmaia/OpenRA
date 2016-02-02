@@ -36,19 +36,11 @@ namespace OpenRA.Mods.Common.Graphics
 			if (nodes.TryGetValue("Defaults", out defaults))
 			{
 				nodes.Remove("Defaults");
-				nodes = nodes.ToDictionary(kv => kv.Key, kv => MiniYaml.Merge(kv.Value, defaults));
-
-				// Merge 'Defaults' animation image value. An example follows.
-				//
-				// - Before -
-				// stand:
-				// 	Facings: 8
-				//
-				// - After -
-				// stand: e1
-				// 	Facings: 8
 				foreach (var n in nodes)
+				{
+					n.Value.Nodes = MiniYaml.Merge(new[] { defaults.Nodes, n.Value.Nodes });
 					n.Value.Value = n.Value.Value ?? defaults.Value;
+				}
 			}
 
 			foreach (var kvp in nodes)
@@ -75,7 +67,7 @@ namespace OpenRA.Mods.Common.Graphics
 	{
 		static readonly WDist DefaultShadowSpriteZOffset = new WDist(-5);
 		readonly Sprite[] sprites;
-		readonly bool reverseFacings, transpose;
+		readonly bool reverseFacings, transpose, useClassicFacingFudge;
 
 		protected readonly ISpriteSequenceLoader Loader;
 
@@ -129,6 +121,8 @@ namespace OpenRA.Mods.Common.Graphics
 				Tick = LoadField(d, "Tick", 40);
 				transpose = LoadField(d, "Transpose", false);
 				Frames = LoadField<int[]>(d, "Frames", null);
+				useClassicFacingFudge = LoadField(d, "UseClassicFacingFudge", false);
+
 				var flipX = LoadField(d, "FlipX", false);
 				var flipY = LoadField(d, "FlipY", false);
 
@@ -138,6 +132,11 @@ namespace OpenRA.Mods.Common.Graphics
 					reverseFacings = true;
 					Facings = -Facings;
 				}
+
+				if (useClassicFacingFudge && Facings != 32)
+					throw new InvalidOperationException(
+						"{0}: Sequence {1}.{2}: UseClassicFacingFudge is only valid for 32 facings"
+						.F(info.Nodes[0].Location, sequence, animation));
 
 				var offset = LoadField(d, "Offset", float2.Zero);
 				var blendMode = LoadField(d, "BlendMode", BlendMode.Alpha);
@@ -150,7 +149,7 @@ namespace OpenRA.Mods.Common.Graphics
 					{
 						var sd = sub.Value.ToDictionary();
 
-						// Allow per-sprite offset, start, and length
+						// Allow per-sprite offset, flipping, start, and length
 						var subStart = LoadField(sd, "Start", 0);
 						var subOffset = LoadField(sd, "Offset", float2.Zero);
 						var subFlipX = LoadField(sd, "FlipX", false);
@@ -158,7 +157,10 @@ namespace OpenRA.Mods.Common.Graphics
 
 						var subSrc = GetSpriteSrc(modData, tileSet, sequence, animation, sub.Key, sd);
 						var subSprites = cache[subSrc].Select(
-							s => new Sprite(s.Sheet, FlipRectangle(s.Bounds, subFlipX, subFlipY), s.Offset + subOffset + offset, s.Channel, blendMode));
+							s => new Sprite(s.Sheet,
+								FlipRectangle(s.Bounds, subFlipX, subFlipY),
+								new float2(subFlipX ? -s.Offset.X : s.Offset.X, subFlipY ? -s.Offset.Y : s.Offset.Y) + subOffset + offset,
+								s.Channel, blendMode));
 
 						var subLength = 0;
 						MiniYaml subLengthYaml;
@@ -178,7 +180,10 @@ namespace OpenRA.Mods.Common.Graphics
 					// Different sequences may apply different offsets to the same frame
 					var src = GetSpriteSrc(modData, tileSet, sequence, animation, info.Value, d);
 					sprites = cache[src].Select(
-						s => new Sprite(s.Sheet, FlipRectangle(s.Bounds, flipX, flipY), s.Offset + offset, s.Channel, blendMode)).ToArray();
+						s => new Sprite(s.Sheet,
+							FlipRectangle(s.Bounds, flipX, flipY),
+							new float2(flipX ? -s.Offset.X : s.Offset.X, flipY ? -s.Offset.Y : s.Offset.Y) + offset,
+							s.Channel, blendMode)).ToArray();
 				}
 
 				MiniYaml length;
@@ -237,8 +242,7 @@ namespace OpenRA.Mods.Common.Graphics
 
 		protected virtual Sprite GetSprite(int start, int frame, int facing)
 		{
-			var f = OpenRA.Traits.Util.QuantizeFacing(facing, Facings);
-
+			var f = Util.QuantizeFacing(facing, Facings, useClassicFacingFudge);
 			if (reverseFacings)
 				f = (Facings - f) % Facings;
 
